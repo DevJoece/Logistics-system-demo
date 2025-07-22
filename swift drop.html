@@ -84,7 +84,13 @@
 
       socket.on("connect", () => {
         console.log("✅ Connected to Socket.IO server");
+
+        const adminId = 'admin_123'
+        socket.emit('connect-user',{userId:adminId,role:"admin"})
+        console.log("Sent role:admin to backend")
       });
+      
+      
 
       socket.on("location-update", (data) => {
         const { driverId, lat, lng, timestamp } = data;
