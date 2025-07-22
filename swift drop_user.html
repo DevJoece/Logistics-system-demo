@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delivery ETA</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    .tracking-container {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 480px;
+      margin: 50px auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .rider-info, .eta {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .eta {
+      font-weight: bold;
+      color: #007b00;
+    }
+  </style>
+</head>
+<body>
+  <div class="tracking-container">
+    <h2>Delivery Tracker</h2>
+    <div class="rider-info" id="riderInfo">Waiting for assigned rider...</div>
+    <div class="eta" id="etaInfo">ETA: -- minutes</div>
+  </div>
+
+  <script>
+    const socket = io("https://mini-trace.onrender.com", {
+      transports: ["websocket"],
+    });
+
+    const riderInfo = document.getElementById("riderInfo");
+    const etaInfo = document.getElementById("etaInfo");
+
+    // You can dynamically set this from user order session
+    const assignedRiderId = "driver_1753088597308_nbcn14ub5";
+
+    socket.on("connect", () => {
+      console.log("🟢 Connected to server");
+      socket.on("connect-user", assignedRiderId, "user");
+    });
+
+    socket.on("rider-location", (data) => {
+      if (data.driverId === assignedRiderId) {
+        console.log("📍 Rider update:", data);
+        riderInfo.textContent = `Rider ID: ${data.driverId}`;
+        etaInfo.textContent =` ETA: ${data.eta || 'Calculating...'} minutes`; // Assuming ETA is sent from backend
+      }
+    });
+
+    socket.on("disconnect", () => {
+      console.warn("🔴 Disconnected from server");
+    });
+  </script>
+</body>
+</html>
